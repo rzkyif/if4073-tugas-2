@@ -249,14 +249,22 @@ classdef aplikasi_exported < matlab.apps.AppBase
                             results = 1 - fftshift(double(D <=D0));
                         case "gaussian"
                             D0 = app.Slider_HPF_G_D0.Value;
-                            results = 1 - fftshift(exp(-(D.^2)./(2*(D0^2))));
+                            results = 1 - fftshift(exp(-(D.^2)./(2*(D0^2)))); 
                         case "butterworth"
                             D0 = app.Slider_HPF_B_D0.Value;
                             N = app.Slider_HPF_B_N.Value;
                             results = 1 - fftshift(1./(1 + (D./D0).^(2*N)));
                     end
                 case "brighten"
-                    results = repmat(2,P,Q);
+                    D0 = 100.0;
+                    D1 = 250.0;
+                    % modified gaussian high pass filter (weaken low freq,
+                    % amplify high freq)
+                    f1 = 8 - 7.25 * fftshift(exp(-(D.^2)./(2*(D0^2))));
+                    % modified gaussien low pass filter (weaken high freq,
+                    % amplify low freq)
+                    f2 = 0.15 + 0.85 * fftshift(exp(-(D.^2)./(2*(D1^2))));
+                    results = f1 .* f2;
                 case "noise"
                     switch app.Drop_Noise.Value
                         case "noise_a.png"
@@ -717,7 +725,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_HPF_I
             app.Drop_HPF_I = uidropdown(app.InputPanel_7);
-            app.Drop_HPF_I.Items = {'hpf_1.png', 'hpf_2.png'};
+            app.Drop_HPF_I.Items = {'hpf_1.png', 'hpf_2.png', 'brighten_1.png'};
             app.Drop_HPF_I.ValueChangedFcn = createCallbackFcn(app, @Drop_HPF_IValueChanged, true);
             app.Drop_HPF_I.Position = [63 59 543 22];
             app.Drop_HPF_I.Value = 'hpf_1.png';
@@ -756,7 +764,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_HPF_G
             app.Drop_HPF_G = uidropdown(app.InputPanel_5);
-            app.Drop_HPF_G.Items = {'hpf_1.png', 'hpf_2.png'};
+            app.Drop_HPF_G.Items = {'hpf_1.png', 'hpf_2.png', 'brighten_1.png'};
             app.Drop_HPF_G.ValueChangedFcn = createCallbackFcn(app, @Drop_HPF_GValueChanged, true);
             app.Drop_HPF_G.Position = [63 59 543 22];
             app.Drop_HPF_G.Value = 'hpf_1.png';
