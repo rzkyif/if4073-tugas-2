@@ -196,6 +196,9 @@ classdef aplikasi_exported < matlab.apps.AppBase
             end
 
             vImage = imread(vImagePath);
+            if size(vImage, 3) == 1
+                vImage = repmat(vImage, 1, 1, 3);
+            end
             vFilter = app.CreateFilter(vImage, aMode, aMethod);
 
             vImageOriginal.ImageSource = vImage;
@@ -460,7 +463,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_LPF_I
             app.Drop_LPF_I = uidropdown(app.InputPanel_8);
-            app.Drop_LPF_I.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png'};
+            app.Drop_LPF_I.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png', 'lpf_ext1.jpeg', 'lpf_ext2.jpeg'};
             app.Drop_LPF_I.ValueChangedFcn = createCallbackFcn(app, @Drop_LPF_IValueChanged, true);
             app.Drop_LPF_I.Position = [63 58 543 22];
             app.Drop_LPF_I.Value = 'lpf_1.png';
@@ -499,7 +502,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_LPF_G
             app.Drop_LPF_G = uidropdown(app.InputPanel_2);
-            app.Drop_LPF_G.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png'};
+            app.Drop_LPF_G.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png', 'lpf_ext1.jpeg', 'lpf_ext2.jpeg'};
             app.Drop_LPF_G.ValueChangedFcn = createCallbackFcn(app, @Drop_LPF_GValueChanged, true);
             app.Drop_LPF_G.Position = [63 58 543 22];
             app.Drop_LPF_G.Value = 'lpf_1.png';
@@ -580,7 +583,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_LPF_B
             app.Drop_LPF_B = uidropdown(app.InputPanel_3);
-            app.Drop_LPF_B.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png'};
+            app.Drop_LPF_B.Items = {'lpf_1.png', 'lpf_2.png', 'lpf_3.png', 'lpf_4.png', 'lpf_5.png', 'lpf_ext1.jpeg', 'lpf_ext2.jpeg'};
             app.Drop_LPF_B.ValueChangedFcn = createCallbackFcn(app, @Drop_LPF_BValueChanged, true);
             app.Drop_LPF_B.Position = [63 100 543 22];
             app.Drop_LPF_B.Value = 'lpf_1.png';
@@ -725,7 +728,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_HPF_I
             app.Drop_HPF_I = uidropdown(app.InputPanel_7);
-            app.Drop_HPF_I.Items = {'hpf_1.png', 'hpf_2.png', 'brighten_1.png'};
+            app.Drop_HPF_I.Items = {'hpf_1.png', 'hpf_2.png', 'hpf_ext1.jpeg', 'hpf_ext2.jpeg'};
             app.Drop_HPF_I.ValueChangedFcn = createCallbackFcn(app, @Drop_HPF_IValueChanged, true);
             app.Drop_HPF_I.Position = [63 59 543 22];
             app.Drop_HPF_I.Value = 'hpf_1.png';
@@ -764,7 +767,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_HPF_G
             app.Drop_HPF_G = uidropdown(app.InputPanel_5);
-            app.Drop_HPF_G.Items = {'hpf_1.png', 'hpf_2.png', 'brighten_1.png'};
+            app.Drop_HPF_G.Items = {'hpf_1.png', 'hpf_2.png', 'hpf_ext1.jpeg', 'hpf_ext2.jpeg'};
             app.Drop_HPF_G.ValueChangedFcn = createCallbackFcn(app, @Drop_HPF_GValueChanged, true);
             app.Drop_HPF_G.Position = [63 59 543 22];
             app.Drop_HPF_G.Value = 'hpf_1.png';
@@ -845,7 +848,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Create Drop_HPF_B
             app.Drop_HPF_B = uidropdown(app.InputPanel_6);
-            app.Drop_HPF_B.Items = {'hpf_1.png', 'hpf_2.png'};
+            app.Drop_HPF_B.Items = {'hpf_1.png', 'hpf_2.png', 'hpf_ext1.jpeg', 'hpf_ext2.jpeg'};
             app.Drop_HPF_B.ValueChangedFcn = createCallbackFcn(app, @Drop_HPF_BValueChanged, true);
             app.Drop_HPF_B.Position = [63 101 543 22];
             app.Drop_HPF_B.Value = 'hpf_1.png';
