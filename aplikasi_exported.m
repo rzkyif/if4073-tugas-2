@@ -227,7 +227,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
             % Terapkan Fast Fourier Transform pada channel V
             %  dengan abs untuk menghilangkan nilai imajiner
             %  dan log beserta perkalian dengan 0.1 
-            %  untuk mengurangi kecerahan gambar
+            %  untuk menyesuaikan kecerahan gambar spektrum
             vImage = log(1+abs(fftshift(fft2(vImage))))*0.1;
 
             % Konversi gambar spektrum menjadi RGB
@@ -310,7 +310,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
                     % Buat filter modifikasi gaussian low pass filter 
                     % ( melemahkan frekuensi tinggi, 
-                    %   menguatkan frekuensi lemah   )
+                    %   menguatkan frekuensi rendah  )
                     D1 = 180.0;
                     f2 = 0.20 + 0.80 * fftshift(exp(-(D.^2)./(2*(D1^2))));
 
