@@ -138,6 +138,8 @@ classdef aplikasi_exported < matlab.apps.AppBase
     methods (Access = private)
         
         function Generate(app, aMode, aMethod)
+
+            % Hubungkan komponen UI dengan kode
             switch aMode
                 case "low"
                     switch aMethod
@@ -195,33 +197,47 @@ classdef aplikasi_exported < matlab.apps.AppBase
                     vImageResult = app.Image_Noise_Result;
             end
 
+            % Baca gambar yang akan diproses
             vImage = imread(vImagePath);
-            if size(vImage, 3) == 1
-                vImage = repmat(vImage, 1, 1, 3);
+            if (size(vImage, 3) == 1)
+                vImage = cat(3, vImage, vImage, vImage);
             end
+
+            % Buat filter yang akan digunakan untuk penapisan
             vFilter = app.CreateFilter(vImage, aMode, aMethod);
 
+            % Tampilkan gambar, spektrum, filter, dan hasil penapisan
             vImageOriginal.ImageSource = vImage;
             vImageSpectrum.ImageSource = app.CreateSpectrum(vImage);
-            vImageResult.ImageSource = app.Process(vImage, vFilter);
             vImageFilter.ImageSource = cat(3, vFilter, vFilter, vFilter);
+            vImageResult.ImageSource = app.Process(vImage, vFilter);
         end
         
         function results = CreateSpectrum(~, aImage)
+
+            % Konversi gambar dari RGB menjadi HSV
             vImage = rgb2hsv(aImage);
+
+            % Ambil channel V
             vImage = vImage(:,:,3);
+
+            % Terapkan Fast Fourier Transform pada channel V
+            %  dengan abs untuk menghilangkan nilai imajiner
+            %  dan log beserta perkalian dengan 0.1 
+            %  untuk mengurangi kecerahan gambar
             vImage = log(1+abs(fftshift(fft2(vImage))))*0.1;
+
+            % Konversi gambar spektrum menjadi RGB
             results = cat(3, vImage, vImage, vImage);
         end
         
         function results = CreateFilter(app, aImage, aMode, aMethod)
 
-            % Calculate Filter Size
-            vSize = size(aImage);
-            P = vSize(1)*2;
-            Q = vSize(2)*2;
+            % Hitung ukuran filter
+            P = size(aImage,1)*2;
+            Q = size(aImage,2)*2;
 
-            % Calculate D
+            % Perhitungkan nilai D untuk pembuatan filter
             u = 0:(P-1);
             v = 0:(Q-1);
             idx = find(u > P/2);
@@ -231,61 +247,118 @@ classdef aplikasi_exported < matlab.apps.AppBase
             [V, U] = meshgrid(v, u);
             D = sqrt(U.^2 + V.^2);
 
+            % Buat filter sesuai dengan parameter aMode dan aMethod
             switch aMode
                 case "low"
                     switch aMethod
                         case "ideal"
+
+                            % Buat ideal low pass filter
                             D0 = app.Slider_LPF_I_D0.Value;
                             results = fftshift(double(D <=D0));
+
                         case "gaussian"
+
+                            % Buat gaussian low pass filter
                             D0 = app.Slider_LPF_G_D0.Value;
                             results = fftshift(exp(-(D.^2)./(2*(D0^2))));
+
                         case "butterworth"
+
+                            % Buat butterworth low pass filter
                             D0 = app.Slider_LPF_B_D0.Value;
                             N = app.Slider_LPF_B_N.Value;
                             results = fftshift(1./(1 + (D./D0).^(2*N)));
+
                     end
                 case "high"
                     switch aMethod
                         case "ideal"
+
+                            % Buat ideal high pass filter
                             D0 = app.Slider_HPF_I_D0.Value;
                             results = 1 - fftshift(double(D <=D0));
+
                         case "gaussian"
+
+                            % Buat gaussian high pass filter
                             D0 = app.Slider_HPF_G_D0.Value;
                             results = 1 - fftshift(exp(-(D.^2)./(2*(D0^2)))); 
+
                         case "butterworth"
+
+                            % Buat butterworth high pass filter
                             D0 = app.Slider_HPF_B_D0.Value;
                             N = app.Slider_HPF_B_N.Value;
                             results = 1 - fftshift(1./(1 + (D./D0).^(2*N)));
+
                     end
                 case "brighten"
+
+                    % Buat filter modifikasi gaussian high pass filter 
+                    % ( melemahkan frekuensi rendah, 
+                    %   menguatkan frekuensi tinggi  )
                     D0 = 100.0;
-                    D1 = 250.0;
-                    % modified gaussian high pass filter (weaken low freq,
-                    % amplify high freq)
                     f1 = 8 - 7.25 * fftshift(exp(-(D.^2)./(2*(D0^2))));
-                    % modified gaussien low pass filter (weaken high freq,
-                    % amplify low freq)
+
+                    % Buat filter modifikasi gaussian low pass filter 
+                    % ( melemahkan frekuensi tinggi, 
+                    %   menguatkan frekuensi lemah   )
+                    D1 = 250.0;
                     f2 = 0.15 + 0.85 * fftshift(exp(-(D.^2)./(2*(D1^2))));
+
+                    % Gabungkan kedua filter
                     results = f1 .* f2;
+
                 case "noise"
                     switch app.Drop_Noise.Value
                         case "noise_a.png"
+
+                            % Awali filter dengan nilai 1 pada semua titik
                             results = ones(P,Q);
-                            results = app.Blot(results, Q/2 + 16, P/2 + 16, 16, 16);
-                            results = app.Blot(results, Q/2 - 16, P/2 - 16, 16, 16);
-                            results = app.Blot(results, Q/2, 128, 32, 32);
-                            results = app.Blot(results, Q/2, P-128, 32, 32);
-                            results = app.Blot(results, 128, P/2, 32, 32);
-                            results = app.Blot(results, Q-128, P/2, 32, 32);
+
+                            % Nol-kan daerah-daerah noise pada spektrum
+                            results = app.Zero(results, 362, 181, 6, 362);
+                            results = app.Zero(results, 402, 181, 6, 362);
+                            results = app.Zero(results, 181, 362, 362, 6);
+                            results = app.Zero(results, 181, 402, 362, 6);
+                            results = app.Zero(results, 362, 362, 20, 20);
+                            results = app.Zero(results, 402, 402, 20, 20);
+                            results = app.Zero(results, Q-181, 362, 362, 6);
+                            results = app.Zero(results, Q-181, 402, 362, 6);
+                            results = app.Zero(results, 362, P-181, 6, 362);
+                            results = app.Zero(results, 402, P-181, 6, 362);
+
                         case "noise_b.png"
+
+                            % Awali filter dengan nilai 1 pada semua titik
                             results = ones(P,Q);
-                            results = app.Blot(results, Q/4, P/2, 32, P);
-                            results = app.Blot(results, 3*Q/4, P/2, 32, P);
+
+                            % Nol-kan daerah-daerah noise pada spektrum
+                            results = app.Zero(results, 124, P/2, 10, P);
+                            results = app.Zero(results, 268, P/2, 10, P);
+                            results = app.Zero(results, 780, P/2, 10, P);
+                            results = app.Zero(results, 912, P/2, 10, P);
+
                         case "noise_c.png"
+
+                            % Awali filter dengan nilai 1 pada semua titik
                             results = ones(P,Q);
-                            results = app.Blot(results, 3*Q/4, P/4, Q/2.4, P/2.4);
-                            results = app.Blot(results, Q/4, 3*P/4, Q/2.4, P/2.4);
+
+                            % Nol-kan daerah-daerah noise pada spektrum
+                            results = app.Zero(results, 468, 86, 5, 5);
+                            results = app.Zero(results, 436, 120, 10, 10);
+                            results = app.Zero(results, 406, 152, 15, 15);
+                            results = app.Zero(results, 374, 184, 20, 20);
+                            results = app.Zero(results, 342, 216, 25, 25);
+                            results = app.Zero(results, 310, 248, 30, 30);
+                            results = app.Zero(results, 246, 312, 30, 30);
+                            results = app.Zero(results, 214, 344, 25, 25);
+                            results = app.Zero(results, 182, 376, 20, 20);
+                            results = app.Zero(results, 150, 408, 15, 15);
+                            results = app.Zero(results, 118, 440, 10, 10);
+                            results = app.Zero(results, 86, 472, 5, 5);
+
                     end
                 otherwise
                     results = ones(P,Q);
@@ -293,8 +366,12 @@ classdef aplikasi_exported < matlab.apps.AppBase
         end
         
         function results = Process(~, aImage, aFilter)
+
+            % Buat kerangka gambar hasil penapisan
             vSize = size(aImage);
             results = uint8(zeros(vSize));
+
+            % Lakukan penapisan pada tiap channel RGB
             for i = 1:3
                 vChnl = double(aImage(:,:,i)) / 255.0;
                 vNewV = fftshift(fft2(vChnl,vSize(1)*2,vSize(2)*2));
@@ -305,12 +382,16 @@ classdef aplikasi_exported < matlab.apps.AppBase
             end
         end
 
-        function results = Blot(~, aFilter, aX, aY, aW, aH)
-            results = aFilter;
+        function results = Zero(~, aFilter, aX, aY, aW, aH)
+
+            % Bulatkan nilai-nilai yang akan digunakan
             aX = round(aX);
             aY = round(aY);
             vRX = round(aW/2);
             vRY = round(aH/2);
+
+            % Nol-kan filter sesuai dengan parameter aX, aY, aW, dan aH
+            results = aFilter;
             for x = ((aX-vRX)+1):(aX+vRX)
                 for y = ((aY-vRY)+1):(aY+vRY)
                     results(y,x) = 0;
