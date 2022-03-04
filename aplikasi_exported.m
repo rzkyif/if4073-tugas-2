@@ -294,13 +294,15 @@ classdef aplikasi_exported < matlab.apps.AppBase
         
         function results = Process(~, aImage, aFilter)
             vSize = size(aImage);
-            vHSV = rgb2hsv(aImage);
-            vNewV = fftshift(fft2(vHSV(:,:,3),vSize(1)*2,vSize(2)*2));
-            vNewV = aFilter.*vNewV;
-            vNewV = real(ifft2(ifftshift(vNewV)));
-            vNewV = vNewV(1:vSize(1), 1:vSize(2));
-            vHSV(:,:,3) = vNewV;
-            results = hsv2rgb(vHSV);
+            results = uint8(zeros(vSize));
+            for i = 1:3
+                vChnl = double(aImage(:,:,i)) / 255.0;
+                vNewV = fftshift(fft2(vChnl,vSize(1)*2,vSize(2)*2));
+                vNewV = aFilter.*vNewV;
+                vNewV = real(ifft2(ifftshift(vNewV)));
+                vNewV = vNewV(1:vSize(1), 1:vSize(2));
+                results(:,:,i) = uint8(round(vNewV * 255.0));
+            end
         end
 
         function results = Blot(~, aFilter, aX, aY, aW, aH)
