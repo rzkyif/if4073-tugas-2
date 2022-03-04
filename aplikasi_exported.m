@@ -211,6 +211,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
             vImageSpectrum.ImageSource = app.CreateSpectrum(vImage);
             vImageFilter.ImageSource = cat(3, vFilter, vFilter, vFilter);
             vImageResult.ImageSource = app.Process(vImage, vFilter);
+
         end
         
         function results = CreateSpectrum(~, aImage)
@@ -229,6 +230,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Konversi gambar spektrum menjadi RGB
             results = cat(3, vImage, vImage, vImage);
+
         end
         
         function results = CreateFilter(app, aImage, aMode, aMethod)
@@ -373,13 +375,25 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Lakukan penapisan pada tiap channel RGB
             for i = 1:3
-                vChnl = double(aImage(:,:,i)) / 255.0;
-                vNewV = fftshift(fft2(vChnl,vSize(1)*2,vSize(2)*2));
-                vNewV = aFilter.*vNewV;
-                vNewV = real(ifft2(ifftshift(vNewV)));
-                vNewV = vNewV(1:vSize(1), 1:vSize(2));
-                results(:,:,i) = uint8(round(vNewV * 255.0));
+                % Buat channel bernilai 0 hingga 1
+                vChannel = double(aImage(:,:,i)) / 255.0;
+
+                % Ubah channel ke domain frekuensi dan terapkan padding
+                vChannel = fftshift(fft2(vChannel,vSize(1)*2,vSize(2)*2));
+
+                % Lakukan perkalian array antara channel dengan filter
+                vChannel = aFilter.*vChannel;
+
+                % Ubah channel ke domain spasial
+                vChannel = real(ifft2(ifftshift(vChannel)));
+
+                % Hapus padding
+                vChannel = vChannel(1:vSize(1), 1:vSize(2));
+
+                % Simpan channel pada kerangka gambar hasil penapisan
+                results(:,:,i) = uint8(round(vChannel * 255.0));
             end
+
         end
 
         function results = Zero(~, aFilter, aX, aY, aW, aH)
@@ -397,6 +411,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
                     results(y,x) = 0;
                 end
             end
+
         end
     end
     
