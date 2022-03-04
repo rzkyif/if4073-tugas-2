@@ -137,6 +137,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
     
     methods (Access = private)
         
+        % Fungsi untuk menggenerasi gambar hasil penapisan
         function Generate(app, aMode, aMethod)
 
             % Hubungkan komponen UI dengan kode
@@ -214,6 +215,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
         end
         
+        % Fungsi untuk membuat magnitude spectrum dari sebuah gambar
         function results = CreateSpectrum(~, aImage)
 
             % Konversi gambar dari RGB menjadi HSV
@@ -233,13 +235,14 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
         end
         
+        % Fungsi untuk membuat filter
         function results = CreateFilter(app, aImage, aMode, aMethod)
 
             % Hitung ukuran filter
             P = size(aImage,1)*2;
             Q = size(aImage,2)*2;
-
-            % Perhitungkan nilai D untuk pembuatan filter
+    
+            % Buat matriks jarak (D) untuk digunakan dalam pembuatan filter
             u = 0:(P-1);
             v = 0:(Q-1);
             idx = find(u > P/2);
@@ -251,50 +254,52 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
             % Buat filter sesuai dengan parameter aMode dan aMethod
             switch aMode
-                case "low"
+                
+                % Buat low pass filter
+                case "low" 
                     switch aMethod
-                        case "ideal"
 
-                            % Buat ideal low pass filter
+                        % Buat low pass filter ideal
+                        case "ideal"
                             D0 = app.Slider_LPF_I_D0.Value;
                             results = fftshift(double(D <=D0));
 
+                        % Buat low pass filter gaussian
                         case "gaussian"
-
-                            % Buat gaussian low pass filter
                             D0 = app.Slider_LPF_G_D0.Value;
                             results = fftshift(exp(-(D.^2)./(2*(D0^2))));
 
+                        % Buat low pass filter butterworth
                         case "butterworth"
-
-                            % Buat butterworth low pass filter
                             D0 = app.Slider_LPF_B_D0.Value;
                             N = app.Slider_LPF_B_N.Value;
                             results = fftshift(1./(1 + (D./D0).^(2*N)));
 
                     end
-                case "high"
-                    switch aMethod
-                        case "ideal"
 
-                            % Buat ideal high pass filter
+                % Buat high pass filter
+                case "high" 
+                    switch aMethod
+
+                        % Buat high pass filter ideal
+                        case "ideal"
                             D0 = app.Slider_HPF_I_D0.Value;
                             results = 1 - fftshift(double(D <=D0));
 
+                        % Buat high pass filter gaussian
                         case "gaussian"
-
-                            % Buat gaussian high pass filter
                             D0 = app.Slider_HPF_G_D0.Value;
                             results = 1 - fftshift(exp(-(D.^2)./(2*(D0^2)))); 
 
+                        % Buat high pass filter butterworth
                         case "butterworth"
-
-                            % Buat butterworth high pass filter
                             D0 = app.Slider_HPF_B_D0.Value;
                             N = app.Slider_HPF_B_N.Value;
                             results = 1 - fftshift(1./(1 + (D./D0).^(2*N)));
 
                     end
+
+                % Buat filter untuk mencerahkan gambar
                 case "brighten"
 
                     % Buat filter modifikasi gaussian high pass filter 
@@ -312,14 +317,17 @@ classdef aplikasi_exported < matlab.apps.AppBase
                     % Gabungkan kedua filter
                     results = f1 .* f2;
 
-                case "noise"
+                % Buat filter untuk menghilangkan derau periodik
+                case "noise" 
                     switch app.Drop_Noise.Value
+
+                        % Buat filter derau khusus untuk gambar noise_a.png
                         case "noise_a.png"
 
                             % Awali filter dengan nilai 1 pada semua titik
                             results = ones(P,Q);
 
-                            % Nol-kan daerah-daerah noise pada spektrum
+                            % Nol-kan daerah-daerah derau pada spektrum
                             results = app.Zero(results, 362, 181, 6, 362);
                             results = app.Zero(results, 402, 181, 6, 362);
                             results = app.Zero(results, 181, 362, 362, 6);
@@ -331,17 +339,19 @@ classdef aplikasi_exported < matlab.apps.AppBase
                             results = app.Zero(results, 362, P-181, 6, 362);
                             results = app.Zero(results, 402, P-181, 6, 362);
 
+                        % Buat filter derau khusus untuk gambar noise_b.png
                         case "noise_b.png"
 
                             % Awali filter dengan nilai 1 pada semua titik
                             results = ones(P,Q);
 
-                            % Nol-kan daerah-daerah noise pada spektrum
+                            % Nol-kan daerah-daerah derau pada spektrum
                             results = app.Zero(results, 124, P/2, 10, P);
                             results = app.Zero(results, 268, P/2, 10, P);
                             results = app.Zero(results, 780, P/2, 10, P);
                             results = app.Zero(results, 912, P/2, 10, P);
 
+                        % Buat filter derau khusus untuk gambar noise_c.png
                         case "noise_c.png"
 
                             % Awali filter dengan nilai 1 pada semua titik
@@ -362,11 +372,10 @@ classdef aplikasi_exported < matlab.apps.AppBase
                             results = app.Zero(results, 86, 472, 5, 5);
 
                     end
-                otherwise
-                    results = ones(P,Q);
             end
         end
         
+        % Fungsi untuk menerapkan suatu filter pada suatu gambar
         function results = Process(~, aImage, aFilter)
 
             % Buat kerangka gambar hasil penapisan
@@ -396,6 +405,7 @@ classdef aplikasi_exported < matlab.apps.AppBase
 
         end
 
+        % Fungsi untuk meng-nol-kan daerah tertentu pada suatu filter
         function results = Zero(~, aFilter, aX, aY, aW, aH)
 
             % Bulatkan nilai-nilai yang akan digunakan
