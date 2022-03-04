@@ -306,13 +306,13 @@ classdef aplikasi_exported < matlab.apps.AppBase
                     % ( melemahkan frekuensi rendah, 
                     %   menguatkan frekuensi tinggi  )
                     D0 = 100.0;
-                    f1 = 8 - 7.25 * fftshift(exp(-(D.^2)./(2*(D0^2))));
+                    f1 = 16 - 15.40 * fftshift(exp(-(D.^2)./(2*(D0^2))));
 
                     % Buat filter modifikasi gaussian low pass filter 
                     % ( melemahkan frekuensi tinggi, 
                     %   menguatkan frekuensi lemah   )
-                    D1 = 250.0;
-                    f2 = 0.15 + 0.85 * fftshift(exp(-(D.^2)./(2*(D1^2))));
+                    D1 = 180.0;
+                    f2 = 0.20 + 0.80 * fftshift(exp(-(D.^2)./(2*(D1^2))));
 
                     % Gabungkan kedua filter
                     results = f1 .* f2;
